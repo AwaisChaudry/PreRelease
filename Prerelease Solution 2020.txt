@@ -1,0 +1,248 @@
+Module Module1
+    Sub Main()
+        Dim days() As String = {"sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"}
+        Dim mornmaxhours() As Decimal = {8, 2, 2, 2, 2, 2, 4}
+        Dim evemaxhours() As Decimal = {8, 8, 8, 8, 8, 8, 8}
+        Dim mornprices() As Decimal = {2, 10, 10, 10, 10, 10, 3}
+        Dim eveprices() As Decimal = {2, 2, 2, 2, 2, 2, 2}
+        Const mornstarthour = 8
+        Const mornfinishhour = 15
+        Const evestarthour = 16
+        Const evefinishhour = 23
+        Const noparkstarthour = 0
+        Const noparkfinishhour = 7
+        Const morndiscount = 0.9
+        Const evediscount = 0.5
+        Dim day As String
+        Dim valid, isfpn, fpncheck, done As Boolean
+        Dim index, hour_arrival, hours_leave, maxhourspark, n, sum As Decimal
+        Dim mornhourspark, evehourspark, mornprice, eveprice As Decimal
+        Dim price, daily_total, amount_paid As Decimal
+        Dim yesno As Char
+        Dim input, fpn As String
+
+        valid = False
+        Do
+            Console.Write("Enter the day: ")
+            day = LCase(Console.ReadLine())
+            index = Array.IndexOf(days, day)
+            If Not index = -1 Then
+                valid = True
+            Else
+                Console.WriteLine("Please enter the correct day.")
+            End If
+        Loop Until valid
+        Console.WriteLine("Thank you.")
+
+        valid = False
+        Do
+            Console.Write("Any entries Y/N: ")
+            yesno = LCase(Console.ReadLine())
+            Select Case yesno
+                Case "n"
+                    valid = True
+                    done = True
+                Case "y"
+                    valid = True
+                    done = False
+                Case Else
+                    Console.WriteLine("Please enter Y or N.")
+            End Select
+        Loop Until valid
+
+        daily_total = 0
+
+        While Not done
+
+            valid = False
+            Do
+                Console.Write("Enter the hour of arrival: ")
+                input = Console.ReadLine()
+                If Not IsNumeric(input) Then
+                    Console.WriteLine("Please enter a number.")
+                Else
+                    hour_arrival = Val(input)
+                    Select Case hour_arrival
+                        Case noparkstarthour To noparkfinishhour
+                            Console.WriteLine("Cannot park between 0 and 8.")
+                        Case mornstarthour To evefinishhour
+                            valid = True
+                        Case Else
+                            Console.WriteLine("Please enter the correct hour of arrival.")
+                    End Select
+                End If
+            Loop Until valid
+            Console.WriteLine("Thank you.")
+
+            index = Array.IndexOf(days, day)
+            valid = False
+            Do
+                Console.Write("Enter how many hours to leave your car: ")
+                input = Console.ReadLine()
+                If Not IsNumeric(input) Then
+                    Console.WriteLine("Please enter a number.")
+                Else
+                    hours_leave = Val(input)
+                    maxhourspark = 24 - hour_arrival
+                    If hour_arrival < evestarthour Then
+                        If maxhourspark > mornmaxhours(index) Then maxhourspark = mornmaxhours(index)
+                    Else
+                        If maxhourspark > evemaxhours(index) Then maxhourspark = evemaxhours(index)
+                    End If
+                    If hours_leave <= maxhourspark And hours_leave > 0 Then
+                        valid = True
+                    Else
+                        Console.WriteLine("Please enter the hours less than or equal to " & maxhourspark & ".")
+                    End If
+                End If
+            Loop Until valid
+            Console.WriteLine("Thank you.")
+
+            valid = False
+            Do
+                Console.Write("Do you have a frequent parking number Y/N: ")
+                yesno = LCase(Console.ReadLine())
+                Select Case yesno
+                    Case "y"
+                        valid = True
+                        isfpn = True
+                    Case "n"
+                        valid = True
+                        isfpn = False
+                    Case Else
+                        Console.WriteLine("Please enter Y or N.")
+                End Select
+            Loop Until valid
+            Console.WriteLine("Thank you.")
+
+            If isfpn Then
+                valid = False
+                Do
+                    Console.Write("Enter your frequent parking number: ")
+                    fpn = UCase(Console.ReadLine())
+                    If Not Len(fpn) = 5 Then
+                        Console.WriteLine("The FPN should be 5 digits.")
+                    Else
+                        valid = True
+                        If Not IsNumeric(fpn.Chars(0)) Then
+                            valid = False
+                        ElseIf Not IsNumeric(fpn.Chars(1)) Then
+                            valid = False
+                        ElseIf Not IsNumeric(fpn.Chars(2)) Then
+                            valid = False
+                        ElseIf Not IsNumeric(fpn.Chars(3)) Then
+                            valid = False
+                        ElseIf Not IsNumeric(fpn.Chars(4)) And Not fpn.Chars(4) = "X" Then
+                            valid = False
+                        End If
+                        If Not valid Then
+                            Console.WriteLine("The FPN must be numeric Modulo 11 format.")
+                        End If
+                    End If
+                Loop Until valid
+                Console.WriteLine("Thank you.")
+            End If
+
+            If isfpn Then
+                sum = 0
+                n = Val(fpn.Chars(0))
+                n = n * 5
+                sum = sum + n
+                n = Val(fpn.Chars(1))
+                n = n * 4
+                sum = sum + n
+                n = Val(fpn.Chars(2))
+                n = n * 3
+                sum = sum + n
+                n = Val(fpn.Chars(3))
+                n = n * 2
+                sum = sum + n
+                If fpn.Chars(4) = "X" Then
+                    n = 10
+                Else
+                    n = Val(fpn.Chars(4))
+                End If
+                n = n * 1
+                sum = sum + n
+                If (sum Mod 11) = 0 Then
+                    fpncheck = True
+                Else
+                    fpncheck = False
+                End If
+            End If
+
+            REM If hour_arrival < evestarthour Then
+            REM    price = hours_leave * mornprice(index)
+            REM    If fpncheck Then price = price * morndiscount
+            REM Else
+            REM    price = hours_leave * eveprice(index)
+            REM    If fpncheck Then price = price * evediscount
+            REM End If
+
+            mornhourspark = evestarthour - hour_arrival
+            evehourspark = hours_leave - mornhourspark
+            If evehourspark < 0 Then
+                mornhourspark = mornhourspark + evehourspark
+                evehourspark = 0
+            End If
+
+            mornprice = mornhourspark * mornprices(index)
+            eveprice = evehourspark * eveprices(index)
+            If isfpn And fpncheck Then
+                mornprice = mornprice * morndiscount
+                eveprice = eveprice * evediscount
+            End If
+            price = mornprice + eveprice
+
+            If isfpn Then
+                If fpncheck Then
+                    Console.WriteLine("Your FPN was accepted and discounted price is " & price & ".")
+                Else
+                    Console.WriteLine("Your FPN was rejected and undiscounted price is " & price & ".")
+                End If
+            Else
+                Console.WriteLine("Your undiscounted price without FPN is " & price & ".")
+            End If
+
+            valid = False
+            Do
+                Console.Write("Enter the amount paid: ")
+                input = Console.ReadLine()
+                If Not IsNumeric(input) Then
+                    Console.WriteLine("Please enter a number.")
+                Else
+                    amount_paid = val(input)
+                    If amount_paid >= price Then
+                        valid = True
+                        daily_total = daily_total + amount_paid
+                    Else
+                        Console.WriteLine("Please enter an amount greater or equal to " & price & ".")
+                    End If
+                End If
+            Loop Until valid
+            Console.WriteLine("Thank you.")
+
+            valid = False
+            Do
+                Console.Write("Any further entries Y/N: ")
+                yesno = LCase(Console.ReadLine())
+                Select Case yesno
+                    Case "n"
+                        valid = True
+                        done = True
+                    Case "y"
+                        valid = True
+                        done = False
+                    Case Else
+                        Console.WriteLine("Please enter Y or N.")
+                End Select
+            Loop Until valid
+
+        End While
+
+        Console.WriteLine("Daily total for " & day & " is " & daily_total & ".")
+
+        Console.ReadLine()
+    End Sub
+
+End Module
